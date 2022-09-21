@@ -129,9 +129,14 @@ export default class Condition {
     if (this.isBooleanOperator())
       return Promise.reject(new Error('Cannot evaluate() a boolean condition'))
 
-    const op = operatorMap.get(this.operator)
+    let invertedOp = false, operator = this.operator
+    if(isObjectLike(operator) && Object.prototype.hasOwnProperty.call(operator, 'not')) {
+      invertedOp = true
+      operator = operator.not
+    }
+    const op = operatorMap.get(operator)
     if (!op)
-      return Promise.reject(new Error(`Unknown operator: ${this.operator}`))
+      return Promise.reject(new Error(`Unknown operator: ${operator}`))
 
     return this._getValue(almanac, pipeMap) // todo - parallelize
       .then((rightHandSideValue) => {
@@ -143,10 +148,11 @@ export default class Condition {
               : leftHandSideValue
           )
           .then((leftHandSideValue) => {
-            const result = op.evaluate(leftHandSideValue, rightHandSideValue)
+            let result = op.evaluate(leftHandSideValue, rightHandSideValue)
+            result = invertedOp ? !result : result
             debug(
-              `condition::evaluate <${JSON.stringify(leftHandSideValue)} ${
-                this.operator
+              `condition::evaluate <${JSON.stringify(leftHandSideValue)} ${invertedOp ? 'NOT ' : ''}${
+                operator
               } ${JSON.stringify(rightHandSideValue)}?> (${result})`
             )
             return {
