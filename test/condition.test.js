@@ -342,6 +342,11 @@ describe('Condition', () => {
       delete conditions.all[2].any[0].fact
       expect(() => new Condition(conditions)).to.throw(/Condition: constructor "fact" property required/)
     })
+
+    it('get used facts', () => {
+      const condition = new Condition(complexCondition())
+      expect(condition.getUsedFacts().size).to.equal(4)
+    })
   })
 
   

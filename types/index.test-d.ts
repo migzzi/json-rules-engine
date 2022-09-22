@@ -68,6 +68,7 @@ expectType<Rule>(rule.setPriority(1));
 expectType<string>(rule.toJSON());
 expectType<string>(rule.toJSON(true));
 expectType<RuleSerializable>(rule.toJSON(false));
+expectType<Set<string>>(rule.getUsedFacts());
 
 // Operator tests
 const operatorEvaluator: OperatorEvaluator<number, number> = (
@@ -101,6 +102,7 @@ expectType<Engine>(engine.addFact(fact));
 expectType<Engine>(engine.addFact(dynamicFact));
 expectType<boolean>(engine.removeFact(fact));
 expectType<Fact<string>>(engine.getFact<string>("test"));
+expectType<Set<string>>(engine.getUsedFacts());
 
 // Run the Engine
 expectType<Promise<EngineResult>>(engine.run({ displayMessage: true }));

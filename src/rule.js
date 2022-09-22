@@ -310,6 +310,14 @@ class Rule extends EventEmitter {
         .then(result => processResult(result))
     }
   }
+
+  /**
+   * Returns a set of used facts in a condition
+   * @returns {Set}
+  */
+  getUsedFacts() {
+    return this.conditions.getUsedFacts();
+  }
 }
 
 export default Rule

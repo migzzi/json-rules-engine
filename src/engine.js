@@ -307,6 +307,20 @@ class Engine extends EventEmitter {
       }).catch(reject)
     })
   }
+
+  /**
+   * Returns a set of used facts in all rules.
+   * @returns {Set}
+  */
+  getUsedFacts() {
+    const facts = new Set()
+    this.rules.forEach((r) => {
+      r.getUsedFacts().forEach((f) => {
+        facts.add(f)
+      })
+    })
+    return facts
+  }
 }
 
 export default Engine

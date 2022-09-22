@@ -130,7 +130,7 @@ export default class Condition {
       return Promise.reject(new Error('Cannot evaluate() a boolean condition'))
 
     let invertedOp = false, operator = this.operator
-    if(isObjectLike(operator) && Object.prototype.hasOwnProperty.call(operator, 'not')) {
+    if (isObjectLike(operator) && Object.prototype.hasOwnProperty.call(operator, 'not')) {
       invertedOp = true
       operator = operator.not
     }
@@ -193,5 +193,29 @@ export default class Condition {
    */
   isBooleanOperator() {
     return Condition.booleanOperator(this) !== undefined
+  }
+
+
+
+  /**
+   * Returns a set of used facts in a condition
+   * @returns {Set}
+   */
+  getUsedFacts() {
+    const facts = new Set()
+    if (this.isBooleanOperator()) {
+      this[this.operator].forEach((c) => {
+        const subFacts = c.getUsedFacts()
+        if(subFacts.size) {
+          subFacts.forEach((sf) => facts.add(sf))
+        }
+      })
+    } else {
+      facts.add(this.fact)
+      if (isObjectLike(this.value) && Object.prototype.hasOwnProperty.call(this.value, 'fact')) {
+        facts.add(this.value.fact)
+      }
+    }
+    return facts
   }
 }
