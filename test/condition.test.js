@@ -206,6 +206,15 @@ describe('Condition', () => {
         expect((await condition.evaluate(almanac, operators)).result).to.equal(false)
       })
     })
+
+    describe('negating operators', () => {
+      it('evaluates not "equal"', async () => {
+        setup({ operator: { not: 'equal' }}, 50)
+        expect((await condition.evaluate(almanac, operators)).result).to.equal(false)
+        setup({ operator: { not: 'equal' }}, 51)
+        expect((await condition.evaluate(almanac, operators)).result).to.equal(true)
+      })
+    })
   })
 
   describe('objects', () => {
@@ -334,4 +343,6 @@ describe('Condition', () => {
       expect(() => new Condition(conditions)).to.throw(/Condition: constructor "fact" property required/)
     })
   })
+
+  
 })
