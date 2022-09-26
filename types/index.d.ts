@@ -42,6 +42,7 @@ export class Engine {
   ): this;
   removeFact(factOrId: string | Fact): boolean;
   getFact<T>(factId: string): Fact<T>;
+  getUsedFacts(): Set<string>;
 
   on(eventName: "success", handler: EventHandler): this;
   on(eventName: "failure", handler: EventHandler): this;
@@ -153,6 +154,7 @@ export class Rule implements RuleProperties {
   setConditions(conditions: TopLevelCondition): this;
   setEvent(event: Event): this;
   setPriority(priority: number): this;
+  getUsedFacts(): Set<string>;
   toJSON(): string;
   toJSON<T extends boolean>(
     stringify: T
