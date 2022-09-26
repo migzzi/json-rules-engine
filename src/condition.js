@@ -7,6 +7,22 @@ import { BOOLEAN_OPERATORS } from './constants'
 export default class Condition {
   constructor(properties) {
     if (!properties) throw new Error('Condition: constructor options required')
+
+    if (Object.hasOwnProperty.call(properties, 'if')) {
+      if (!Object.hasOwnProperty.call(properties, 'then')) {
+        throw new Error(`conditional "if" must have accompanying "then" block`)
+      }
+      if (Array.isArray(properties.if) || Array.isArray(properties.then)) {
+        throw new Error('"if" / "then" values must be objects')
+      }
+      properties = {
+        any: [
+          { all: [properties.if, properties.then] },
+          { not: { ...properties.if } }
+        ]
+      }
+    }
+
     const booleanOperator = Condition.booleanOperator(properties)
     Object.assign(this, properties)
     if (booleanOperator) {
