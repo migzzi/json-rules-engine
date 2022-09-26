@@ -1,0 +1,1 @@
+export const BOOLEAN_OPERATORS = ['all', 'any', 'not']

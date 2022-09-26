@@ -2,6 +2,7 @@
 
 import debug from './debug'
 import isObjectLike from 'lodash.isobjectlike'
+import { BOOLEAN_OPERATORS } from './constants'
 
 export default class Condition {
   constructor(properties) {
@@ -9,14 +10,18 @@ export default class Condition {
     const booleanOperator = Condition.booleanOperator(properties)
     Object.assign(this, properties)
     if (booleanOperator) {
-      const subConditions = properties[booleanOperator]
-      if (!Array.isArray(subConditions)) {
+      let subConditions = properties[booleanOperator]
+      if (booleanOperator === 'not') {
+        if (Array.isArray(subConditions)) 
+          throw new Error(`"${booleanOperator}" must be an object`)
+      }
+      if (booleanOperator !== 'not' && !Array.isArray(subConditions)) {
         throw new Error(`"${booleanOperator}" must be an array`)
       }
       this.operator = booleanOperator
       // boolean conditions always have a priority default 1
       this.priority = parseInt(properties.priority, 10) || 1
-      this[booleanOperator] = subConditions.map((c) => {
+      this[booleanOperator] = booleanOperator === 'not' ? new Condition(subConditions) : subConditions.map((c) => {
         return new Condition(c)
       })
     } else {
@@ -168,27 +173,23 @@ export default class Condition {
   /**
    * Returns the boolean operator for the condition
    * If the condition is not a boolean condition, the result will be 'undefined'
-   * @return {string 'all' or 'any'}
+   * @return {string 'all' or 'any' or 'not'}
    */
   static booleanOperator(condition) {
-    if (Object.prototype.hasOwnProperty.call(condition, 'any')) {
-      return 'any'
-    } else if (Object.prototype.hasOwnProperty.call(condition, 'all')) {
-      return 'all'
-    }
+    return BOOLEAN_OPERATORS.find((bo) => Object.prototype.hasOwnProperty.call(condition, bo))
   }
 
   /**
    * Returns the condition's boolean operator
    * Instance version of Condition.isBooleanOperator
-   * @returns {string,undefined} - 'any', 'all', or undefined (if not a boolean condition)
+   * @returns {string,undefined} - 'any', 'all', 'not', or undefined (if not a boolean condition)
    */
   booleanOperator() {
     return Condition.booleanOperator(this)
   }
 
   /**
-   * Whether the operator is boolean ('all', 'any')
+   * Whether the operator is boolean ('all', 'any', 'not')
    * @returns {Boolean}
    */
   isBooleanOperator() {

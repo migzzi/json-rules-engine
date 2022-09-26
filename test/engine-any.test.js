@@ -45,9 +45,9 @@ describe('Engine: "any" conditions', () => {
       expect(eventSpy).to.have.been.calledWith(event)
     })
 
-    it('does not emit when the condition fails', () => {
+    it('does not emit when the condition fails', async () => {
       ageSpy.returns(75)
-      engine.run()
+      await engine.run()
       expect(eventSpy).to.not.have.been.calledWith(event)
     })
   })
