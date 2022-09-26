@@ -4,6 +4,7 @@ import Condition from './condition'
 import RuleResult from './rule-result'
 import debug from './debug'
 import EventEmitter from 'eventemitter2'
+import { BOOLEAN_OPERATORS } from './constants'
 
 class Rule extends EventEmitter {
   /**
@@ -70,8 +71,8 @@ class Rule extends EventEmitter {
    * @param {object} conditions - conditions, root element must be a boolean operator
    */
   setConditions (conditions) {
-    if (!Object.prototype.hasOwnProperty.call(conditions, 'all') && !Object.prototype.hasOwnProperty.call(conditions, 'any')) {
-      throw new Error('"conditions" root must contain a single instance of "all" or "any"')
+    if (!BOOLEAN_OPERATORS.some((bo) => Object.prototype.hasOwnProperty.call(conditions, bo))  && !conditions.if) {
+      throw new Error('"conditions" root must contain a single instance of "all" or "any" or "not"')
     }
     this.conditions = new Condition(conditions)
     return this
@@ -193,8 +194,10 @@ class Rule extends EventEmitter {
         let comparisonPromise
         if (condition.operator === 'all') {
           comparisonPromise = all(subConditions)
-        } else {
+        } else if (condition.operator === 'any') {
           comparisonPromise = any(subConditions)
+        } else {
+          comparisonPromise = not(subConditions)
         }
         // for booleans, rule passing is determined by the all/any result
         return comparisonPromise.then(comparisonValue => {
@@ -293,6 +296,15 @@ class Rule extends EventEmitter {
     }
 
     /**
+     * Runs a 'not' boolean operator on some condition
+     * @param  {Condition} condition to be evaluated
+     * @return {Promise(boolean)} condition evaluation result
+     */
+     const not = (condition) => {
+      return evaluateCondition(condition).then(res => !res)
+    }
+
+    /**
      * Emits based on rule evaluation result, and decorates ruleResult with 'result' property
      * @param {RuleResult} ruleResult
      */
@@ -302,13 +314,15 @@ class Rule extends EventEmitter {
       return this.emitAsync(event, ruleResult.event, almanac, ruleResult).then(() => ruleResult)
     }
 
-    if (ruleResult.conditions.any) {
-      return any(ruleResult.conditions.any)
-        .then(result => processResult(result))
-    } else {
-      return all(ruleResult.conditions.all)
-        .then(result => processResult(result))
+    const opFnMap = {
+      all,
+      any,
+      not
     }
+
+    return opFnMap[this.conditions.operator](ruleResult.conditions[this.conditions.operator])
+      .then(result => processResult(result))
+ 
   }
 
   /**
